@@ -69,22 +69,22 @@ function Invoke-AzCli {
 function Install-AzCli {
     <#
     .SYNOPSIS
-        Installs the Azure CLI on Windows.
+        Installs the Azure CLI on Windows or Linux.
 
     .DESCRIPTION
-        Installs the Azure CLI on Windows.
+        Installs the Azure CLI on Windows or Linux.
 
     .COMPONENT
         Azure CLI.
 
     .PARAMETER Quiet 
-        Quiet mode, no user interaction.
+        Quiet mode, no user interaction (Windows only).
 
     .PARAMETER Passive
-        Unattended mode - progress bar only.
+        Unattended mode - progress bar only (Windows only).
 
     .PARAMETER Args
-        Additional arguments passed to msiexec.
+        Additional arguments passed to msiexec (Windows only).
 
     .INPUTS
         None. You cannot pipe objects to Install-AzCli.
@@ -93,7 +93,7 @@ function Install-AzCli {
         None.
 
     .LINK
-        https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows
+        https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
     #>
 
     [CmdletBinding()]
@@ -104,40 +104,46 @@ function Install-AzCli {
         [string[]]$Args
     )
 
-    if ($env:OS -ne "Windows_NT") {
-        Write-Error "Install-AzCli is supported only on Windows"
-        return
+    if ($env:OS -eq "Windows_NT") {
+        Write-Host "Installing 'Azure CLI' for Windows" -ForegroundColor Green
+
+        $OldProgressPreference = $ProgressPreference
+        try {
+            $ProgressPreference = 'SilentlyContinue'
+            Write-Verbose "Downloading from https://aka.ms/installazurecliwindows"
+            Invoke-WebRequest -Uri "https://aka.ms/installazurecliwindows" -OutFile ".\AzureCLI.msi"
+    
+            $argumentList = "/I AzureCLI.msi $($Args -join ' ')"
+            if ($Quiet) {
+                $argumentList += " /quiet"
+            }
+            if ($Passive) {
+                $argumentList += " /passive"
+            }
+    
+            Write-Verbose "Invoking msiexec $argumentList"
+            $p = Start-Process msiexec.exe -Wait -ArgumentList $argumentList -PassThru
+            $LASTEXITCODE = $p.ExitCode
+            if ($LASTEXITCODE -eq 1602) {
+                Write-Host "User cancelled installation"
+            }
+            elseif ($LASTEXITCODE -ne 0) {
+                Write-Error "Installation failed: $LASTEXITCODE. See https://docs.microsoft.com/en-us/windows/win32/msi/error-codes"
+            }
+        }
+        finally {
+            $ProgressPreference = $OldProgressPreference
+            if (Test-Path ".\AzureCLI.msi") {
+                Remove-Item ".\AzureCLI.msi"
+            }
+        }
     }
-
-    $OldProgressPreference = $ProgressPreference
-    try {
-        $ProgressPreference = 'SilentlyContinue'
-        Write-Verbose "Downloading from https://aka.ms/installazurecliwindows"
-        Invoke-WebRequest -Uri "https://aka.ms/installazurecliwindows" -OutFile ".\AzureCLI.msi"
-
-        $argumentList = "/I AzureCLI.msi $($Args -join ' ')"
-        if ($Quiet) {
-            $argumentList += " /quiet"
-        }
-        if ($Passive) {
-            $argumentList += " /passive"
-        }
-
-        Write-Verbose "Invoking msiexec $argumentList"
-        $p = Start-Process msiexec.exe -Wait -ArgumentList $argumentList -PassThru
-        $LASTEXITCODE = $p.ExitCode
-        if ($LASTEXITCODE -eq 1602) {
-            Write-Host "User cancelled installation"
-        }
-        elseif ($LASTEXITCODE -ne 0) {
-            Write-Error "Installation failed: $LASTEXITCODE. See https://docs.microsoft.com/en-us/windows/win32/msi/error-codes"
-        }
+    elseif ($PSVersionTable.OS.Contains('Ubuntu')) {
+        Write-Host "Installing APT package 'azure-cli' for Ubuntu" -ForegroundColor Green
+        Invoke-Expression "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
     }
-    finally {
-        $ProgressPreference = $OldProgressPreference
-        if (Test-Path ".\AzureCLI.msi") {
-            Remove-Item ".\AzureCLI.msi"
-        }
+    else {
+        Write-Error "Platform not supported"
     }
 }
 

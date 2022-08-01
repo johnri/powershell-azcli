@@ -102,9 +102,10 @@ function Invoke-AzCli {
     }
 
     try {
-        $result | ConvertFrom-Json -Depth 20 | ForEach-Object { [PSCustomObject]$_ }
+        $result | ConvertFrom-Json | ForEach-Object { [PSCustomObject]$_ }
     }
     catch {
+        Write-Verbose ($_ | Out-String)
         $result
     }
 }

@@ -17,6 +17,9 @@ function Invoke-AzCli {
     .PARAMETER Command 
         The command-line arguments.
 
+    .PARAMETER Raw
+        Invoke az directly with no output parsing.
+
     .INPUTS
         None. You cannot pipe objects to Invoke-AzCli.
 
@@ -30,14 +33,34 @@ function Invoke-AzCli {
     [CmdletBinding()]
     param (
         [Parameter(Position=0, ValueFromRemainingArguments=$true)]
-        [string[]]$Command
+        [string[]]$Command,
+        [switch]$Raw
     )
+
+    if (-not (Get-Command "az" -ErrorAction SilentlyContinue)) {
+        Write-Error "Azure CLI is not installed. Use Install-AzCli."
+        return
+    }
+
 
     $expression = "az"
     if ($Command) {
-        $expression = "az $($Command -join ' ') -o json"
+        $expression += " $($Command -join ' ')"
+    }
+    else {
+        $Raw = $true
     }
 
+    if ($Raw) {
+        Write-Verbose -Message "Executing: $expression"
+        Invoke-Expression -Command $expression
+        if ($LastExitCode -gt 0) {
+            Write-Error "$expression"
+        }
+        return
+    }
+
+    $expression += " -o json"
     Write-Verbose -Message "Executing: $expression"
     $errorOutput = $($result = Invoke-Expression -Command $expression) 2>&1
 

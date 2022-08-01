@@ -7,7 +7,15 @@ The `AzCli` module is a PowerShell-friendly wrapper for the Azure CLI (`az`).
 Install the Azure CLI on Windows or Linux.
 
 ```ps1
-Install-AzCli [-Quiet] [-Passive] [[-Args] <String[]>] [<CommonParameters>]
+Install-AzCli [-Force] [-Quiet] [-Passive] [[-Args] <String[]>] [<CommonParameters>]
+```
+
+## Test-AzCli
+
+Tests whether the Azure CLI is installed (or available on the path).
+
+```ps1
+Test-AzCli [<CommonParameters>]
 ```
 
 ## Invoke-AzCli

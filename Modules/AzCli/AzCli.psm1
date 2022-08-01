@@ -58,11 +58,10 @@ function Invoke-AzCli {
         [switch]$Raw
     )
 
-    if (-not (Get-Command "az" -ErrorAction SilentlyContinue)) {
+    if (-not (Test-AzCli)) {
         Write-Error "Azure CLI is not installed. Use Install-AzCli."
         return
     }
-
 
     $expression = "az"
     if ($Command) {
@@ -110,6 +109,30 @@ function Invoke-AzCli {
     }
 }
 
+function Test-AzCli {
+    <#
+    .SYNOPSIS
+        Tests whether the Azure CLI is installed (or available on the path).
+
+    .DESCRIPTION
+        Tests whether the Azure CLI is installed (or available on the path).
+
+    .COMPONENT
+        Azure CLI.
+    #>
+
+    [CmdletBinding()]
+    param (
+    )
+
+    $az = Get-Command "az" -ErrorAction SilentlyContinue
+    if ($az) {
+        Write-Verbose $az.Source
+    }
+
+    return (-not(-not($az)))
+}
+
 function Install-AzCli {
     <#
     .SYNOPSIS
@@ -126,6 +149,9 @@ function Install-AzCli {
 
     .PARAMETER Passive
         Unattended mode - progress bar only (Windows only).
+
+    .PARAMETER Force
+        Force re-install if already installed.
 
     .PARAMETER Args
         Additional arguments passed to msiexec (Windows only).
@@ -144,9 +170,19 @@ function Install-AzCli {
     param (
         [switch]$Quiet,
         [switch]$Passive,
+        [switch]$Force,
         [Parameter(ValueFromRemainingArguments=$true)]
         [string[]]$Args
     )
+
+    if (Test-AzCli) {
+        Write-Host "Azure CLI is already installed"
+        if (!$Force) {
+            $LASTEXITCODE = 0
+            return
+        }
+        Write-Verbose "Force re-install"
+    }
 
     if ($env:OS -eq "Windows_NT") {
         Write-Host "Installing 'Azure CLI' for Windows" -ForegroundColor Green
@@ -192,5 +228,5 @@ function Install-AzCli {
 }
 
 New-Alias azcli Invoke-AzCli
-Export-ModuleMember -Function Invoke-AzCli,Install-AzCli
+Export-ModuleMember -Function Invoke-AzCli,Install-AzCli,Test-AzCli
 Export-ModuleMember -Alias azcli

@@ -1,6 +1,6 @@
 # powershell-azcli
 
-The `AzCli` module is a PowerShell-friendly wrapper for the Azure CLI.
+The `AzCli` module is a PowerShell-friendly wrapper for the Azure CLI (`az`).
 
 ## Install-AzCli
 
@@ -12,15 +12,15 @@ Install-AzCli [-Quiet] [-Passive] [[-Args] <String[]>] [<CommonParameters>]
 
 ## Invoke-AzCli
 
-Alias: `azcli`
+Invoke the Azure CLI. Returns the results as an array of PowerShell-friendly objects that can be used directly with `Select-Object`, `Where-Object`, `Sort-Object`, etc.
 
-Invoke the Azure CLI (az). Returns the results as an array of PowerShell-friendly objects that can be used directly with `Select-Object`, `Where-Object`, `Sort-Object`, etc.
+Alias: `azcli`
 
 ```ps1
 Invoke-AzCli [[-Command] <String[]>] [-Raw] [<CommonParameters>]
 ```
 
-Use the `-Raw` switch to invoke directly with no output parsing.
+Use the `-Raw` switch to invoke directly with no output parsing, which is useful interactive commands like `az login`.
 
 Examples
 

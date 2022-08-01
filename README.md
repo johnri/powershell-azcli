@@ -1,6 +1,8 @@
 # powershell-azcli
 
-The `AzCli` module is a PowerShell-friendly wrapper for the Azure CLI (`az`).
+**AzCli** is a wrapper for the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/). The JSON output of **az** is converted to [PSCustomObject](https://docs.microsoft.com/en-us/powershell/scripting/learn/deep-dives/everything-about-pscustomobject) to make it easy to work with in PowerShell.
+
+It includes helper functions to test whether **az** is installed and to install it on Windows and on Linux.
 
 ## Install-AzCli
 
@@ -20,15 +22,14 @@ Test-AzCli [<CommonParameters>]
 
 ## Invoke-AzCli
 
-Invoke the Azure CLI. Returns the results as an array of PowerShell-friendly objects that can be used directly with `Select-Object`, `Where-Object`, `Sort-Object`, etc.
+Invoke the Azure CLI. Returns the results as <PSCustomObject[]> that can be used directly with `Select-Object`, `Where-Object`, `Sort-Object`, etc. If the output is not JSON, it is returned as a raw string. Use the `-Raw` switch to invoke **az** directly with no output parsing--useful with interactive commands like `az login`.
 
-Alias: `azcli`
+Alias: `AzCli`
 
 ```ps1
 Invoke-AzCli [[-Command] <String[]>] [-Raw] [<CommonParameters>]
 ```
 
-Use the `-Raw` switch to invoke directly with no output parsing, which is useful interactive commands like `az login`.
 
 Examples
 
